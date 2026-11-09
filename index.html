@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebNetSim2 Begleiter</title>
+<style>
+:root{--bg:#f3f6f9;--card:#fff;--text:#1b2631;--muted:#5b6977;--line:#d5dde5;--soft:#eef3f7;--accent:#1f5f8b;--ok:#2e7d4f;--okbg:#e2f3e9;--warn:#b7791f;--warnbg:#fdf3e1;
+--haushalt:#2e7d4f;--haushalt-bg:#e3f2e9;--provider:#b03a2e;--provider-bg:#f8e5e2;--website:#1f5f8b;--website-bg:#e3eef6;--role:#1f5f8b;--role-bg:#e3eef6;--kbd:#3f51b5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141a;--card:#18202a;--text:#e3e9ef;--muted:#9aa8b6;--line:#2c3844;--soft:#1e2833;--accent:#6fb0de;--ok:#6cc494;--okbg:#16301f;--warn:#e0b25c;--warnbg:#3a2e16;
+--haushalt:#6cc494;--haushalt-bg:#17301f;--provider:#ec8578;--provider-bg:#3a1f1b;--website:#6fb0de;--website-bg:#1a2d3c;--kbd:#7986cb}}
+:root[data-theme="dark"]{--bg:#0f141a;--card:#18202a;--text:#e3e9ef;--muted:#9aa8b6;--line:#2c3844;--soft:#1e2833;--accent:#6fb0de;--ok:#6cc494;--okbg:#16301f;--warn:#e0b25c;--warnbg:#3a2e16;
+--haushalt:#6cc494;--haushalt-bg:#17301f;--provider:#ec8578;--provider-bg:#3a1f1b;--website:#6fb0de;--website-bg:#1a2d3c;--kbd:#7986cb}
+body[data-role="haushalt"]{--role:var(--haushalt);--role-bg:var(--haushalt-bg)}
+body[data-role="provider"]{--role:var(--provider);--role-bg:var(--provider-bg)}
+body[data-role="website"]{--role:var(--website);--role-bg:var(--website-bg)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 13px}
+button:hover{border-color:var(--role)}
+button.pri{background:var(--role);border-color:var(--role);color:#fff;font-weight:600}
+body:not([data-role]) button.pri{background:var(--accent);border-color:var(--accent)}
+button.ghost{background:transparent}
+:focus-visible{outline:3px solid var(--role);outline-offset:2px}
+
+/* ---------- Kopf ---------- */
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:4px solid var(--role);box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.hd{max-width:1100px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{font-weight:800;color:var(--accent);white-space:nowrap}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:.88rem;background:var(--soft);white-space:nowrap}
+.pill b{font-weight:700}
+#pNetV,#netIn,ol.steps li input[data-k="net"],.mock .fake{font-family:ui-monospace,Menlo,Consolas,monospace;font-feature-settings:"calt" 0,"liga" 0}
+#pRound{cursor:pointer}
+.pill.role{background:var(--role);color:#fff;border-color:var(--role);cursor:pointer}
+.pill.empty{color:var(--muted);font-style:italic}
+nav.tabs{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+nav.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;padding:10px 14px;background:none;font-weight:600;color:var(--muted);white-space:nowrap}
+nav.tabs button .no{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--soft);margin-right:6px;font-size:.8rem}
+nav.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--role)}
+nav.tabs button[aria-selected="true"] .no{background:var(--role);color:#fff}
+
+main{max-width:1100px;margin:0 auto;padding:22px 16px 80px}
+section.view{display:none}section.view.show{display:block}
+h1{margin:0 0 4px;font-size:1.65rem}
+h2{margin:26px 0 10px;font-size:1.2rem}
+h3{margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+kbd{display:inline-block;background:var(--kbd);color:#fff;border-radius:5px;padding:0 7px;font:600 .8rem/1.6 system-ui,sans-serif;letter-spacing:.03em}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px;overflow-wrap:anywhere}
+.box{border-left:5px solid var(--role);background:var(--role-bg);border-radius:8px;padding:10px 14px;margin:12px 0}
+.box.warn{border-color:var(--warn);background:var(--warnbg)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* ---------- Rollenwahl ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,20,30,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.overlay.show{display:flex}
+.chooser{background:var(--card);border-radius:16px;padding:22px;max-width:640px;width:100%}
+.rolebtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.rolebtns button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 8px;border-width:2px;font-weight:700}
+.rolebtns button span{font-size:2rem}
+.rolebtns button[data-r="haushalt"]{border-color:var(--haushalt);color:var(--haushalt)}
+.rolebtns button[data-r="provider"]{border-color:var(--provider);color:var(--provider)}
+.rolebtns button[data-r="website"]{border-color:var(--website);color:var(--website)}
+.rolebtns button small{font-weight:400;color:var(--muted);font-size:.78rem;text-align:center}
+
+/* ---------- Anmelden ---------- */
+.login{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+ol.steps{list-style:none;margin:0;padding:0}
+ol.steps li{display:flex;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--card);cursor:pointer}
+ol.steps li .nr{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--soft);color:var(--muted)}
+ol.steps li.cur{border-color:var(--role);box-shadow:0 0 0 2px var(--role) inset}
+ol.steps li.cur .nr{background:var(--role);color:#fff}
+ol.steps li.done .nr{background:var(--okbg);color:var(--ok)}
+ol.steps li .t{font-weight:700}
+ol.steps li .d{font-size:.92rem;color:var(--muted)}
+ol.steps li input{margin-top:6px;width:100%;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.mock{position:sticky;top:140px;border-radius:14px;overflow:hidden;background:linear-gradient(160deg,#0d3b66,#1b6ca8);min-height:330px;display:flex;align-items:center;justify-content:center;padding:18px}
+.mock .win{background:#fff;color:#1b2631;border-radius:12px;padding:18px;width:100%;max-width:380px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.mock .win h3{color:#3f51b5;margin:.1rem 0 .8rem}
+.mock .big{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:12px 14px;border-radius:10px;border:0;background:#3f51b5;color:#fff;font-weight:700;margin:4px;min-width:96px}
+.mock .big.dim{background:#1a2a4a;opacity:.6}
+.mock .big.hl{outline:4px solid #ffd54f}
+.mock .fake{display:inline-block;width:80%;border-bottom:2px solid #3f51b5;background:#f3f5fb;padding:8px;margin:6px 0 12px;font-family:ui-monospace,monospace;min-height:2.4em}
+.mock .okb{background:#3f51b5;color:#fff;border:0;border-radius:6px;padding:6px 18px}
+.mock .cap{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#cfe3f5;font-size:.8rem}
+
+/* ---------- Adressbuch ---------- */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input[type=search]{flex:1;min-width:180px;padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card)}
+.filters button{border-radius:99px;padding:4px 12px;font-size:.88rem}
+.filters button.on{background:var(--text);color:var(--card);border-color:var(--text)}
+.tblwrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px}
+table.ab{width:100%;border-collapse:collapse;min-width:720px}
+table.ab th{text-align:left;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:10px;border-bottom:2px solid var(--line);background:var(--soft)}
+table.ab td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.ab tr.me td{background:var(--role-bg)}
+table.ab td.rc{width:8px;padding:0}
+table.ab input,table.ab select{width:100%;border:1px solid transparent;border-radius:7px;padding:6px 8px;background:transparent}
+table.ab input:hover,table.ab select:hover{border-color:var(--line)}
+table.ab input:focus,table.ab select:focus{border-color:var(--role);background:var(--card);outline:none}
+table.ab input.bad{border-color:var(--warn);background:var(--warnbg)}
+.cell{display:flex;align-items:center;gap:2px}
+.icon{border:0;background:none;padding:4px 6px;border-radius:6px;color:var(--muted)}
+.icon:hover{background:var(--soft);color:var(--text)}
+.chk{font-size:.78rem;color:var(--warn);white-space:nowrap}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--card);padding:8px 16px;border-radius:9px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+.toast.show{opacity:1}
+
+/* ---------- Ablaufplan ---------- */
+.timeline{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px}
+.tl-st{flex:none}
+.tl-st .lbl{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.tl-st .rs{display:flex;gap:6px}
+.rbtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:118px;padding:8px 10px;border-radius:11px;border:2px solid var(--line);background:var(--card);text-align:left}
+.rbtn .rn{font-size:.72rem;color:var(--muted);font-weight:700}
+.rbtn .rt{font-weight:700;font-size:.9rem;line-height:1.2}
+.rbtn .bar{height:5px;width:100%;background:var(--line);border-radius:3px;overflow:hidden;margin-top:4px}
+.rbtn .bar i{display:block;height:100%;background:var(--ok)}
+.rbtn.sel{border-color:var(--role);box-shadow:0 0 0 2px var(--role)}
+.rbtn.now{background:var(--role-bg)}
+.rbtn.now .rn::after{content:" · JETZT";color:var(--role)}
+.rbtn.full .rn::before{content:"✓ ";color:var(--ok)}
+
+.rhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:10px 0 14px}
+.rhead .kick{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rhead h1{color:var(--role)}
+.nowbtn{white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.rcard{border:1px solid var(--line);border-top:8px solid var(--role);border-radius:14px;background:var(--card);padding:16px 18px;margin-bottom:16px}
+.rcard .code{display:inline-block;background:var(--role);color:#fff;font-weight:800;border-radius:7px;padding:1px 9px;font-size:.85rem;margin-right:8px}
+.rcard .seq{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rcard h2{margin:4px 0 6px;color:var(--role)}
+ul.todo{list-style:none;margin:12px 0;padding:0}
+ul.todo li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:7px;cursor:pointer;transition:background .15s}
+ul.todo li .num{flex:none;width:26px;height:26px;border-radius:7px;background:var(--role);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.85rem}
+ul.todo li input{margin-top:3px;width:19px;height:19px;accent-color:var(--ok);flex:none}
+ul.todo li.done{background:var(--okbg);border-color:var(--ok)}
+ul.todo li.done .num{background:var(--ok)}
+ul.todo li.done .tx{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--ok)}
+.notes{display:grid;gap:8px;margin-top:10px}
+.notes label{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;font-size:.9rem;color:var(--muted)}
+.notes input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+aside .card{margin-bottom:14px}
+.need h3,.give h3{font-size:.95rem;margin-bottom:4px}
+.need{border-left:5px solid var(--warn)}
+.give{border-left:5px solid var(--ok)}
+.others li{margin-bottom:6px}
+.others .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.nextnav{display:flex;justify-content:space-between;gap:10px;margin-top:6px;flex-wrap:wrap}
+
+table.plan{width:100%;border-collapse:separate;border-spacing:0;min-width:720px}
+table.plan th,table.plan td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.plan th{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:#fff}
+table.plan th.h{background:var(--haushalt)}table.plan th.p{background:var(--provider)}table.plan th.w{background:var(--website)}table.plan th.g{background:#55626f}
+table.plan tr.stu td{background:var(--soft);font-weight:700;color:var(--muted);font-size:.85rem}
+table.plan td.mine{background:var(--role-bg);font-weight:600}
+table.plan tr.sel td{box-shadow:inset 0 2px 0 var(--role),inset 0 -2px 0 var(--role)}
+table.plan tr.rr{cursor:pointer}
+table.plan tr.rr:hover td{background:var(--soft)}
+.tag{display:inline-block;font-weight:800;font-size:.8rem;border-radius:5px;padding:0 6px;color:#fff;margin-right:4px}
+.tag.h{background:var(--haushalt)}.tag.p{background:var(--provider)}.tag.w{background:var(--website)}
+
+/* ---------- Hilfe ---------- */
+details.faq{background:var(--card);border:1px solid var(--line);border-radius:11px;margin-bottom:8px}
+details.faq summary{padding:11px 14px;font-weight:600;cursor:pointer}
+details.faq p{margin:0;padding:0 14px 12px;color:var(--muted)}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.gl div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.gl b{color:var(--accent)}
+
+@media (max-width:860px){
+  .login,.layout,.grid2{grid-template-columns:1fr}
+  .mock{position:static}
+  header{position:static}
+  .notes label{grid-template-columns:1fr}
+  h1{font-size:1.4rem}
+}
+@media (max-width:560px){.rolebtns{grid-template-columns:1fr}.status{margin-left:0}}
+@media print{
+  header,.toolbar,.no-print,.overlay,.toast{display:none!important}
+  body{background:#fff;color:#000}
+  section.view{display:none!important}
+  section.view.show{display:block!important}
+  .tblwrap{border:0}table.ab input,table.ab select{border:0;appearance:none}
+  .icon{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <div class="logo">🌐 WebNetSim2 · Begleiter</div>
+    <div class="status">
+      <span class="pill role" id="pRole" title="Rolle wechseln">Rolle wählen</span>
+      <span class="pill" id="pNet">Netzwerk: <b id="pNetV">–</b></span>
+      <span class="pill" id="pRound" title="Zur aktuellen Runde">Runde: <b id="pRoundV">–</b></span>
+      <button class="ghost" id="theme" title="Hell/Dunkel" aria-label="Hell oder Dunkel umschalten">🌓</button>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button data-v="login" role="tab"><span class="no">1</span>Anmelden</button>
+    <button data-v="book" role="tab"><span class="no">2</span>Adressbuch</button>
+    <button data-v="plan" role="tab"><span class="no">3</span>Ablaufplan</button>
+    <button data-v="help" role="tab"><span class="no">?</span>Hilfe</button>
+  </nav>
+</header>
+
+<main>
+<!-- ===================== 1 ANMELDEN ===================== -->
+<section class="view" id="v-login">
+  <h1>So meldest du dich an</h1>
+  <p class="lead">Mach Schritt für Schritt mit. Rechts siehst du, wie der Bildschirm in WebNetSim2 ungefähr aussieht. Klicke auf einen Schritt, um ihn anzuzeigen.</p>
+  <div class="login">
+    <div>
+      <ol class="steps" id="steps"></ol>
+      <div class="box" id="loginRoleBox"></div>
+      <div class="box warn"><b>Es klappt nicht?</b> Prüfe den Netzwerknamen genau, auch Groß- und Kleinschreibung. Hilft das nicht, schalte bei der Rollenwahl den <b>Netzwerk-Problemmodus</b> ein.</div>
+      <details class="faq"><summary>🔁 Nächste Stunde weitermachen</summary><p>Öffne wieder wns2.de → „Vernetztes Szenario starten“ → Netzwerknamen eingeben. Wähle dann <b>deine eigene</b> Rolle aus der Liste der noch nicht verbundenen Rollen. Deine Geräte und Einstellungen kommen automatisch zurück. Die Verbindungen stellt die Lehrkraft mit „Jetzt vernetzen“ wieder her.</p></details>
+      <p><button class="pri" data-go="book">Angemeldet? Weiter zum Adressbuch →</button></p>
+    </div>
+    <div class="mock" id="mock" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ===================== 2 ADRESSBUCH ===================== -->
+<section class="view" id="v-book">
+  <h1>Adressbuch der Klasse</h1>
+  <p class="lead">Hier sammelst du alle Adressen, die du brauchst: Provider, Webserver und Domains. Trage zuerst <b>deine eigenen</b> Daten ein (farbige Zeile), dann die der anderen. Die Einträge bleiben in diesem Browser gespeichert.</p>
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Suchen: Name, IP oder Domain …" aria-label="Adressbuch durchsuchen">
+    <span class="filters" id="filters"></span>
+  </div>
+  <div class="tblwrap">
+    <table class="ab" id="ab">
+      <thead><tr><th></th><th style="width:205px">Rolle</th><th>Name</th><th>IP-Adresse</th><th>Domain</th><th>Notiz (z. B. WAN-Adresse)</th><th class="no-print" style="width:40px"></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="toolbar" style="margin-top:12px">
+    <button id="addRow">+ Zeile</button>
+    <button id="exp">⬇ Exportieren</button>
+    <label class="pri" style="display:inline-block;cursor:pointer;border:1px solid var(--line);border-radius:9px;padding:7px 13px;background:var(--card)">⬆ Importieren<input type="file" id="imp" accept=".json,application/json" hidden></label>
+    <button onclick="window.print()">🖨 Drucken</button>
+    <button id="clearBook" class="ghost">Leeren</button>
+  </div>
+  <div class="grid2">
+    <div class="box"><b>Woher bekomme ich die Adressen?</b><br>Von der Tafel, durch Nachfragen bei den anderen Teams oder in WebNetSim2: Halte den Mauszeiger über den Router oder schau bei den angeschlossenen Geräten nach.</div>
+    <div class="box"><b>Austauschen:</b> Mit „Exportieren“ speicherst du das Adressbuch als Datei. Ein anderes Team übernimmt die Einträge mit „Importieren“. Bereits vorhandene Einträge bleiben dabei erhalten.</div>
+  </div>
+</section>
+
+<!-- ===================== 3 ABLAUFPLAN ===================== -->
+<section class="view" id="v-plan">
+  <div class="timeline" id="timeline" aria-label="Runden"></div>
+  <div id="round"></div>
+  <h2>Der ganze Ablaufplan</h2>
+  <p class="muted small">Deine Spalte ist hervorgehoben. Klicke auf eine Zeile, um die Runde zu öffnen.</p>
+  <div class="tblwrap"><table class="plan" id="plan"></table></div>
+</section>
+
+<!-- ===================== HILFE ===================== -->
+<section class="view" id="v-help">
+  <h1>Hilfe</h1>
+  <p class="lead">Wenn etwas nicht klappt: Schau zuerst hier nach, frag dann ein anderes Team und erst danach die Lehrkraft.</p>
+  <h2>Wenn etwas nicht klappt</h2>
+  <div id="faq"></div>
+  <h2>Begriffe</h2>
+  <input type="search" id="gq" placeholder="Begriff suchen …" aria-label="Glossar durchsuchen" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);margin-bottom:10px">
+  <div class="gl" id="gloss"></div>
+</section>
+</main>
+
+<div class="overlay" id="chooser" role="dialog" aria-modal="true" aria-labelledby="chT">
+  <div class="chooser">
+    <h2 id="chT" style="margin-top:0">Welche Rolle hast du?</h2>
+    <p class="muted" style="margin:0">Deine Rolle steht auf deiner Rollenkarte. Die Seite zeigt dir danach genau deine Aufgaben.</p>
+    <div class="rolebtns" id="roleBtns"></div>
+    <p class="small muted" style="margin:14px 0 0">Netzwerkname (steht an der Tafel):</p>
+    <input id="netIn" placeholder="z. B. 583x1t" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-top:4px">
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const D = {"cards":[{"id":"haushalt","name":"HAUSHALT","icon":"🏠","color":"2E7D4F","light":"E3F2E9","who":"Du bist ein Zuhause mit Heimrouter. Du schließt Geräte an und surfst im Internet.","cards":[{"title":"Anmelden und ans Internet anschließen","seq":"Start","goal":"Du trittst dem Klassennetz bei und verbindest dein Zuhause mit einem Provider.","steps":["Öffne im Browser wns2.de und klicke auf „Vernetztes Szenario starten“.","Gib den Netzwerknamen ein, der an der Tafel steht.","Wähle die Rolle „Haushalt“.","Gib einen Namen für deinen Haushalt ein, z. B. „Familie Sonnenschein“.","Ein Fenster fragt nach dem Provider. Wähle einen Provider und klicke auf [VERBINDEN]."],"try":"Halte den Mauszeiger über den Namen deines Providers. Die angezeigte WAN-Adresse ist die Adresse deines Zuhauses im Internet.","note":[["Netzwerkname",1],["Mein Provider",1],["Meine WAN-Adresse",1]]},{"title":"Heimnetz aufbauen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du schließt Computer und Drucker an deinen Heimrouter an.","steps":["Füge mit [HINZUFÜGEN] einen Computer hinzu.","Füge mit [HINZUFÜGEN] einen Drucker hinzu.","Schau dir die IP-Adressen der beiden Geräte an und notiere sie."],"try":"Vergleiche deine Adressen mit denen eines anderen Haushalts. Was fällt dir auf? (Tipp: 192.168.1.…)","note":[["IP-Adresse Computer",1],["IP-Adresse Drucker",1]]},{"title":"Im Internet surfen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du rufst die Webseiten der Website-Anbieter auf.","steps":["Frage einen Website-Anbieter nach der IP-Adresse seines Webservers (oder lies sie an der Tafel ab).","Gib die IP-Adresse im Browser deines Computers ein.","Frage nach der Domain derselben Webseite (z. B. zeitung7b.de) und gib sie ein.","Besuche mindestens drei verschiedene Webseiten."],"try":"Klappt der Aufruf über die Domain nicht, aber über die IP-Adresse? Dann fehlt der DNS-Eintrag. Sag dem Website-Anbieter Bescheid!","note":[["Webseite 1 (Domain / IP)",1],["Webseite 2 (Domain / IP)",1]]},{"title":"WLAN einschalten und mit dem Smartphone surfen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du baust ein WLAN auf und gehst mit dem Smartphone online.","steps":["Schalte an deinem Router das WLAN ein (Schalter „WLAN“ am Router).","Füge mit [HINZUFÜGEN] ein Smartphone hinzu.","Prüfe, ob das Smartphone eine IP-Adresse bekommen hat.","Rufe mit dem Smartphone eine Webseite auf."],"try":"Das Smartphone verbindet sich hier automatisch. Wie verbindest du in echt ein Handy mit einem WLAN?","note":[["IP-Adresse Smartphone",1]]},{"title":"Router und WLAN einstellen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du loggst dich in deinen Router ein und änderst das WLAN-Passwort.","steps":["Schau nach, welche IP-Adresse dein Router hat.","Gib diese IP-Adresse im Browser deines Computers in die Adresszeile ein.","Logge dich mit dem Passwort ein, das auf dem Zettel am Router steht.","Suche das WLAN-Passwort und ändere es in ein neues, sicheres Passwort.","Schau auf dein Smartphone. Was zeigt es an?","Verbinde das Smartphone mit dem neuen Passwort erneut."],"try":"Das Smartphone zeigt nach der Änderung „kein WLAN“. Warum? Wie ist das bei euch zuhause, wenn jemand das WLAN-Passwort ändert?","note":[["IP-Adresse meines Routers",1],["Neues WLAN-Passwort",1]]},{"title":"Eigener Webserver zuhause","seq":"Sequenz 1 · Zusatz","goal":"Du stellst selbst eine Webseite ins Netz und machst sie von außen erreichbar.","steps":["Füge mit [HINZUFÜGEN] einen Webserver hinzu und wähle eine fertige Webseite.","Notiere die IP-Adresse des Webservers (192.168.1.…). Diese Adresse gilt nur in deinem Heimnetz!","Aktiviere im Router bei den angeschlossenen Geräten die Portweiterleitung für den Webserver (Pfeil-Symbol).","Gehe zu deinem Provider: Er soll eine Domain für deine WAN-Adresse in den DNS eintragen.","Bitte eine andere Person, deine Seite über die WAN-Adresse und über die Domain aufzurufen."],"try":"Schalte die Portweiterleitung wieder aus. Ist deine Seite von außen noch erreichbar? Warum nicht?","note":[["IP-Adresse Webserver (Heimnetz)",1],["Meine Domain",1]]},{"title":"Eigene Webseite bauen","seq":"Sequenz 2 · Einstieg Webseiten","goal":"Du gestaltest eine eigene Webseite mit HTML und verlinkst sie.","steps":["Klicke an deinem Webserver auf „Neue eigene Webseite“. Hast du noch keinen Webserver, dann füge zuerst einen mit [HINZUFÜGEN] hinzu.","Klicke bei index.html auf das Stift-Symbol. Der HTML-Editor öffnet sich.","Füge mit den Knöpfen ÜBERSCHRIFT und ABSATZ eine Überschrift und einen Text über dich oder dein Thema ein.","Füge mit LISTE eine Aufzählung ein, z. B. deine drei Lieblingsdinge.","Füge ein BILD ein: Suche ein Bild im Internet → Rechtsklick → „Grafikadresse kopieren“ → Adresse einfügen.","Lege mit „+ HTML“ eine zweite Seite an (seite2.html) und verlinke sie auf der Startseite: \u003ca href=\"seite2.html\">Seite 2\u003c/a>","Prüfe alles mit [VORSCHAU] und klicke dann auf [SPEICHERN]."],"try":"Öffne deine Seite im Browser deines Computers. Klicke auf den Link. Links funktionieren nur im Browser, nicht in der Vorschau! Setze danach einen absoluten Link auf die Seite eines anderen Teams: \u003ca href=\"https://domain.de/\">…\u003c/a>","note":[["Adresse (URL) meiner Webseite",1],["Link zu einem anderen Team",1]]},{"title":"Messenger und Sicherheit","seq":"Sequenz 4 · Datenschutz","goal":"Du nutzt den Messenger und erkennst Gefahren durch Links, Schadsoftware und schwache Passwörter.","steps":["Verbinde dein Smartphone mit dem WLAN und öffne die Messenger-App.","Schreibe zwei Personen eine Nachricht mit Emojis.","Gründe eine Gruppe, gib ihr einen Namen und füge mindestens zwei Personen hinzu.","Schicke der Gruppe den Link zu einer Webseite.","Achtung, jetzt kommen verdächtige Nachrichten und Webseiten! Überlege vor jedem Klick: Kenne ich den Absender? Passt die Nachricht? Wirkt der Link seltsam?","Schütze deinen Router: Verberge den Passwortzettel und ändere das Router-Passwort in ein sicheres Passwort."],"try":"Wurde ein Gerät befallen? Dann reagiert es nicht mehr. Besprecht: Welche Nachricht hat euch hereingelegt und woran hättet ihr sie erkennen können?","note":[["Meine wichtigste Sicherheitsregel",2]]}]},{"id":"provider","name":"PROVIDER","icon":"📡","color":"B03A2E","light":"F8E5E2","who":"Du bist ein Internetanbieter. Du verbindest Kunden mit dem Internet und betreibst den DNS-Server.","cards":[{"title":"Anmelden und Firma gründen","seq":"Start","goal":"Du trittst dem Klassennetz bei und machst deine Firma bekannt.","steps":["Öffne im Browser wns2.de und klicke auf „Vernetztes Szenario starten“.","Gib den Netzwerknamen ein, der an der Tafel steht.","Wähle die Rolle „Provider“.","Gib einen Firmennamen ein, z. B. „BlitzNet AG“.","Schreibe deinen Firmennamen und die IP-Adresse deines Routers an die Tafel. Haushalte und Website-Anbieter brauchen sie!"],"try":"Beobachte deinen Router: Welche Kunden verbinden sich mit dir?","note":[["Netzwerkname",1],["Mein Firmenname",1],["IP-Adresse meines Routers",1]]},{"title":"Die Provider verbinden","seq":"Sequenz 1 · Aufbau Internet","goal":"Du verbindest dein Netz mit den anderen Providern, damit ein Internet entsteht.","steps":["Schau an der Tafel nach, welche anderen Provider es gibt.","Klicke auf [VERBINDEN] und verbinde dich mit jedem anderen Provider.","Prüfe, welche Provider und Kunden jetzt mit deinem Router verbunden sind."],"try":"Was würde passieren, wenn du dich mit keinem anderen Provider verbindest? Könnten deine Kunden dann alle Webseiten erreichen?","note":[["Verbunden mit (Providern)",2]]},{"title":"DNS-Server betreiben","seq":"Sequenz 1 · Aufbau Internet","goal":"Du richtest das „Telefonbuch“ des Internets ein.","steps":["Füge mit [HINZUFÜGEN] einen DNS-Server hinzu.","Notiere die IP-Adresse des DNS-Servers.","Website-Anbieter kommen zu dir und nennen eine Domain und die IP-Adresse ihres Webservers.","Trage jedes Paar (Domain → IP-Adresse) in die Tabelle des DNS-Servers ein.","Prüfe die Schreibweise genau: Ein Tippfehler und die Seite wird nicht gefunden!"],"try":"Trage absichtlich eine falsche IP-Adresse ein und rufe die Domain auf. Was passiert? Korrigiere den Eintrag danach wieder.","note":[["IP-Adresse DNS-Server",1],["Eingetragene Domains",2]]},{"title":"Surfen und testen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du prüfst, ob die Webseiten im Netz erreichbar sind.","steps":["Füge mit [HINZUFÜGEN] einen Computer hinzu.","Rufe die Webseiten der Website-Anbieter auf, zuerst über die IP-Adresse.","Rufe dieselben Webseiten über ihre Domain auf."],"try":"Funktioniert eine Domain nicht? Schau in deiner DNS-Tabelle nach, ob der Eintrag stimmt.","note":[["Erreichbare Webseiten",2]]},{"title":"Webserver, Access Point und Smartphone","seq":"Sequenz 1 · Aufbau Internet","goal":"Du betreibst selbst eine Webseite und surfst mobil.","steps":["Füge einen Webserver hinzu und wähle eine fertige Webseite.","Trage die Domain deiner Webseite selbst in deinen DNS-Server ein.","Füge einen Access Point hinzu. Er stellt ein WLAN bereit.","Füge ein Smartphone hinzu und rufe damit deine eigene Webseite auf."],"try":"Welches Gerät stellt das WLAN für dein Smartphone bereit: der Router oder der Access Point?","note":[["Meine Domain",1]]},{"title":"Router und WLAN einstellen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du loggst dich in deinen Router ein und änderst das WLAN-Passwort.","steps":["Schau nach, welche IP-Adresse dein Router hat.","Gib diese IP-Adresse im Browser deines Computers in die Adresszeile ein.","Logge dich mit dem Passwort ein, das auf dem Zettel am Router steht.","Suche das WLAN-Passwort und ändere es in ein neues, sicheres Passwort.","Schau auf dein Smartphone. Was zeigt es an?","Verbinde das Smartphone mit dem neuen Passwort erneut.","Tipp für Provider: Verberge den Passwortzettel an deinem Router."],"try":"Das Smartphone zeigt nach der Änderung „kein WLAN“. Warum? Wie ist das bei euch zuhause, wenn jemand das WLAN-Passwort ändert?","note":[["IP-Adresse meines Routers",1],["Neues WLAN-Passwort",1]]},{"title":"Portweiterleitung beim Haushalt testen","seq":"Sequenz 1 · Zusatz","goal":"Du hilfst einem Haushalt, seinen Webserver erreichbar zu machen.","steps":["Ein Haushalt nennt dir seine WAN-Adresse. Du findest sie auch unter den angeschlossenen Geräten deines Routers.","Rufe die WAN-Adresse im Browser auf.","Trage für den Haushalt eine Domain mit seiner WAN-Adresse in den DNS ein.","Rufe die Domain auf."],"try":"Klappt es nicht? Dann hat der Haushalt die Portweiterleitung wahrscheinlich noch nicht aktiviert.","note":[["WAN-Adresse Haushalt / Domain",1]]},{"title":"Eigene Webseite bauen","seq":"Sequenz 2 · Einstieg Webseiten","goal":"Du gestaltest eine eigene Webseite mit HTML und verlinkst sie.","steps":["Klicke an deinem Webserver auf „Neue eigene Webseite“. Hast du noch keinen Webserver, dann füge zuerst einen mit [HINZUFÜGEN] hinzu.","Klicke bei index.html auf das Stift-Symbol. Der HTML-Editor öffnet sich.","Füge mit den Knöpfen ÜBERSCHRIFT und ABSATZ eine Überschrift und einen Text über dich oder dein Thema ein.","Füge mit LISTE eine Aufzählung ein, z. B. deine drei Lieblingsdinge.","Füge ein BILD ein: Suche ein Bild im Internet → Rechtsklick → „Grafikadresse kopieren“ → Adresse einfügen.","Lege mit „+ HTML“ eine zweite Seite an (seite2.html) und verlinke sie auf der Startseite: \u003ca href=\"seite2.html\">Seite 2\u003c/a>","Prüfe alles mit [VORSCHAU] und klicke dann auf [SPEICHERN]."],"try":"Öffne deine Seite im Browser deines Computers. Klicke auf den Link. Links funktionieren nur im Browser, nicht in der Vorschau! Setze danach einen absoluten Link auf die Seite eines anderen Teams: \u003ca href=\"https://domain.de/\">…\u003c/a>","note":[["Adresse (URL) meiner Webseite",1],["Link zu einem anderen Team",1]]},{"title":"Messenger und Sicherheit","seq":"Sequenz 4 · Datenschutz","goal":"Du nutzt den Messenger und erkennst Gefahren durch Links, Schadsoftware und schwache Passwörter.","steps":["Verbinde dein Smartphone mit dem WLAN und öffne die Messenger-App.","Schreibe zwei Personen eine Nachricht mit Emojis.","Gründe eine Gruppe, gib ihr einen Namen und füge mindestens zwei Personen hinzu.","Schicke der Gruppe den Link zu einer Webseite.","Achtung, jetzt kommen verdächtige Nachrichten und Webseiten! Überlege vor jedem Klick: Kenne ich den Absender? Passt die Nachricht? Wirkt der Link seltsam?","Schütze deinen Router: Verberge den Passwortzettel und ändere das Router-Passwort in ein sicheres Passwort."],"try":"Wurde ein Gerät befallen? Dann reagiert es nicht mehr. Besprecht: Welche Nachricht hat euch hereingelegt und woran hättet ihr sie erkennen können?","note":[["Meine wichtigste Sicherheitsregel",2]]}]},{"id":"website","name":"WEBSITE-ANBIETER","icon":"🌐","color":"1F5F8B","light":"E3EEF6","who":"Du betreibst einen Webserver mit einer Webseite und sorgst dafür, dass viele sie besuchen.","cards":[{"title":"Anmelden und ans Internet anschließen","seq":"Start","goal":"Du trittst dem Klassennetz bei und verbindest dich mit einem Provider.","steps":["Öffne im Browser wns2.de und klicke auf „Vernetztes Szenario starten“.","Gib den Netzwerknamen ein, der an der Tafel steht.","Wähle die Rolle „Website-Anbieter“.","Gib einen Firmennamen ein, z. B. „Spielewelt GmbH“.","Ein Fenster fragt nach dem Provider. Wähle einen Provider und klicke auf [VERBINDEN]."],"try":"Welche IP-Adresse hat dein Router jetzt bekommen? Sie stammt aus dem Adressbereich deines Providers.","note":[["Netzwerkname",1],["Mein Provider",1],["IP-Adresse meines Routers",1]]},{"title":"Webserver einrichten","seq":"Sequenz 1 · Aufbau Internet","goal":"Du stellst einen Webserver mit einer fertigen Webseite ins Netz.","steps":["Füge mit [HINZUFÜGEN] einen Webserver hinzu.","Wähle eine fertige Webseite aus: Zeitung, 3-Gewinnt, Chatraum oder Wohnungen.","Notiere die IP-Adresse deines Webservers."],"try":"Schau dir die Adresse deines Webservers genau an. Welcher Teil ist gleich wie bei deinem Router?","note":[["IP-Adresse Webserver",1],["Gewählte Webseite",1]]},{"title":"Webseite testen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du prüfst, ob deine Webseite funktioniert.","steps":["Füge mit [HINZUFÜGEN] einen Computer hinzu.","Gib im Browser des Computers die IP-Adresse deines Webservers ein.","Prüfe, ob deine Webseite angezeigt wird."],"try":"Tippe absichtlich eine falsche IP-Adresse ein. Was zeigt der Browser?","note":[]},{"title":"Domain beantragen","seq":"Sequenz 1 · Aufbau Internet","goal":"Deine Webseite bekommt einen Namen, den man sich leicht merken kann.","steps":["Denke dir eine Domain aus, z. B. spielewelt.de. Sie braucht einen Punkt und darf keine Leerzeichen enthalten.","Gehe zu einem Provider und nenne ihm deine Domain und die IP-Adresse deines Webservers.","Der Provider trägt beides in seinen DNS-Server ein.","Gib im Browser deine Domain ein und prüfe, ob die Seite erscheint."],"try":"Warum ist eine Domain praktischer als eine IP-Adresse? Wer übersetzt die Domain in die IP-Adresse?","note":[["Meine Domain",1],["Eingetragen bei Provider",1]]},{"title":"Werbung machen","seq":"Sequenz 1 · Aufbau Internet","goal":"Möglichst viele sollen deine Webseite besuchen.","steps":["Schreibe deine Domain und die IP-Adresse deines Webservers an die Tafel.","Gehe zu Haushalten und Providern und mache Werbung für deine Seite.","Besuche selbst die Webseiten der anderen Website-Anbieter."],"try":"Deine Seite ist ein Chatraum oder ein Spiel? Probiert sie gemeinsam aus!","note":[["Besucht von",1]]},{"title":"Drucker, Access Point und Smartphone","seq":"Sequenz 1 · Aufbau Internet","goal":"Du erweiterst dein Netz und surfst mobil.","steps":["Füge einen Drucker hinzu und drucke eine Webseite aus.","Füge einen Access Point hinzu. Er stellt ein WLAN bereit.","Füge ein Smartphone hinzu und rufe damit deine Webseite über die Domain auf."],"try":"Kann ein Haushalt auf deinem Drucker drucken? Warum ist das gut so?","note":[["IP-Adresse Smartphone",1]]},{"title":"Router und WLAN einstellen","seq":"Sequenz 1 · Aufbau Internet","goal":"Du loggst dich in deinen Router ein und änderst das WLAN-Passwort.","steps":["Schau nach, welche IP-Adresse dein Router hat.","Gib diese IP-Adresse im Browser deines Computers in die Adresszeile ein.","Logge dich mit dem Passwort ein, das auf dem Zettel am Router steht.","Suche das WLAN-Passwort und ändere es in ein neues, sicheres Passwort.","Schau auf dein Smartphone. Was zeigt es an?","Verbinde das Smartphone mit dem neuen Passwort erneut."],"try":"Das Smartphone zeigt nach der Änderung „kein WLAN“. Warum? Wie ist das bei euch zuhause, wenn jemand das WLAN-Passwort ändert?","note":[["IP-Adresse meines Routers",1],["Neues WLAN-Passwort",1]]},{"title":"Eigene Webseite bauen","seq":"Sequenz 2 · Einstieg Webseiten","goal":"Du gestaltest eine eigene Webseite mit HTML und verlinkst sie.","steps":["Klicke an deinem Webserver auf „Neue eigene Webseite“. Hast du noch keinen Webserver, dann füge zuerst einen mit [HINZUFÜGEN] hinzu.","Klicke bei index.html auf das Stift-Symbol. Der HTML-Editor öffnet sich.","Füge mit den Knöpfen ÜBERSCHRIFT und ABSATZ eine Überschrift und einen Text über dich oder dein Thema ein.","Füge mit LISTE eine Aufzählung ein, z. B. deine drei Lieblingsdinge.","Füge ein BILD ein: Suche ein Bild im Internet → Rechtsklick → „Grafikadresse kopieren“ → Adresse einfügen.","Lege mit „+ HTML“ eine zweite Seite an (seite2.html) und verlinke sie auf der Startseite: \u003ca href=\"seite2.html\">Seite 2\u003c/a>","Prüfe alles mit [VORSCHAU] und klicke dann auf [SPEICHERN]."],"try":"Öffne deine Seite im Browser deines Computers. Klicke auf den Link. Links funktionieren nur im Browser, nicht in der Vorschau! Setze danach einen absoluten Link auf die Seite eines anderen Teams: \u003ca href=\"https://domain.de/\">…\u003c/a>","note":[["Adresse (URL) meiner Webseite",1],["Link zu einem anderen Team",1]]},{"title":"Messenger und Sicherheit","seq":"Sequenz 4 · Datenschutz","goal":"Du nutzt den Messenger und erkennst Gefahren durch Links, Schadsoftware und schwache Passwörter.","steps":["Verbinde dein Smartphone mit dem WLAN und öffne die Messenger-App.","Schreibe zwei Personen eine Nachricht mit Emojis.","Gründe eine Gruppe, gib ihr einen Namen und füge mindestens zwei Personen hinzu.","Schicke der Gruppe den Link zu einer Webseite.","Achtung, jetzt kommen verdächtige Nachrichten und Webseiten! Überlege vor jedem Klick: Kenne ich den Absender? Passt die Nachricht? Wirkt der Link seltsam?","Schütze deinen Router: Verberge den Passwortzettel und ändere das Router-Passwort in ein sicheres Passwort."],"try":"Wurde ein Gerät befallen? Dann reagiert es nicht mehr. Besprecht: Welche Nachricht hat euch hereingelegt und woran hättet ihr sie erkennen können?","note":[["Meine wichtigste Sicherheitsregel",2]]}]}],"rounds":[{"n":1,"st":"1. Stunde","seq":"Aufbau Internet","title":"Anmelden","cards":{"haushalt":[0],"provider":[0],"website":[0]},"hint":{"provider":"Du startest ZUERST! Die anderen warten auf deinen Namen an der Tafel.","haushalt":"Warte, bis die ersten Provider an der Tafel stehen.","website":"Warte, bis die ersten Provider an der Tafel stehen."},"need":{"haushalt":"Name eines Providers","provider":"–","website":"Name eines Providers"},"give":{"haushalt":"–","provider":"Firmenname und Router-IP an Tafel und Adressbuch","website":"–"},"impulse":"Wer ist mit wem verbunden? Was macht ein Provider?"},{"n":2,"st":"1. Stunde","seq":"Aufbau Internet","title":"Netz aufbauen","cards":{"haushalt":[1],"provider":[1],"website":[1,2]},"need":{"haushalt":"–","provider":"Namen der anderen Provider","website":"–"},"give":{"haushalt":"–","provider":"Verbindung zu allen anderen Providern","website":"IP-Adresse deines Webservers ins Adressbuch"},"impulse":"Welcher Knoten im Netzwerkgraphen ist welche Rolle? Warum haben Haushalte Adressen mit 192.168.1.X?"},{"n":3,"st":"2. Stunde","seq":"Aufbau Internet","title":"Adressen und DNS","cards":{"haushalt":[2],"provider":[2],"website":[3]},"hint":{"haushalt":"Rufe die Webseiten zuerst über ihre IP-Adresse auf."},"need":{"haushalt":"IP-Adressen der Webserver","provider":"Domain und Webserver-IP der Website-Anbieter","website":"Einen Provider mit DNS-Server"},"give":{"haushalt":"–","provider":"DNS-Einträge (Domain → IP-Adresse)","website":"Domain und Webserver-IP an Provider und ins Adressbuch"},"impulse":"Warum ist der DNS-Server wie ein Telefonbuch? Was ist der Unterschied zwischen IP-Adresse und Domain?"},{"n":4,"st":"2. Stunde","seq":"Aufbau Internet","title":"Surfen und Werben","cards":{"haushalt":[2],"provider":[3],"website":[4]},"hint":{"haushalt":"Gleiche Karte wie in Runde 3, aber jetzt über die Domains!"},"need":{"haushalt":"Domains der Webseiten","provider":"–","website":"–"},"give":{"haushalt":"Rückmeldung, ob die Seiten funktionieren","provider":"Hilfe bei fehlerhaften DNS-Einträgen","website":"Werbung: Domain an Haushalte und Provider"},"impulse":"Spielt den Weg einer Anfrage nach: Computer → Router → Provider → DNS → Webserver."},{"n":5,"st":"3. Stunde","seq":"Aufbau Internet","title":"Mobil surfen","cards":{"haushalt":[3],"provider":[4],"website":[5]},"need":{"haushalt":"–","provider":"–","website":"–"},"give":{"haushalt":"–","provider":"Domain deines Webservers in den eigenen DNS","website":"–"},"impulse":"Was ist der Unterschied zwischen Router und Access Point? Wie verbindest du in echt ein Handy mit dem WLAN?"},{"n":6,"st":"3. Stunde","seq":"Aufbau Internet","title":"Router und WLAN","cards":{"haushalt":[4],"provider":[5],"website":[6]},"hint":{"haushalt":"Diesmal verbindet sich das Smartphone nicht automatisch!","provider":"Diesmal verbindet sich das Smartphone nicht automatisch!","website":"Diesmal verbindet sich das Smartphone nicht automatisch!"},"need":{"haushalt":"–","provider":"–","website":"–"},"give":{"haushalt":"–","provider":"–","website":"–"},"impulse":"Warum zeigt das Smartphone „kein WLAN“? Wozu braucht der Router ein Passwort?"},{"n":7,"st":"3. Stunde","seq":"Zusatz","title":"Portweiterleitung","cards":{"haushalt":[5],"provider":[6],"website":[7]},"hint":{"website":"Für dich ist das eine Vorzieh-Runde: Beginne schon mit deiner eigenen Webseite."},"need":{"haushalt":"Einen Provider, der deine Domain einträgt","provider":"WAN-Adresse eines Haushalts","website":"–"},"give":{"haushalt":"Deine WAN-Adresse an den Provider","provider":"DNS-Eintrag für den Haushalt","website":"–"},"impulse":"Was ist der Unterschied zwischen einer privaten und einer öffentlichen Adresse?"},{"n":8,"st":"4. und 5. Stunde","seq":"Einstieg Webseiten","title":"Eigene Webseite","cards":{"haushalt":[6],"provider":[7],"website":[7]},"need":{"haushalt":"Domain einer anderen Webseite (für einen absoluten Link)","provider":"Domain einer anderen Webseite (für einen absoluten Link)","website":"Domain einer anderen Webseite (für einen absoluten Link)"},"give":{"haushalt":"Adresse deiner Webseite","provider":"Adresse deiner Webseite","website":"Adresse deiner Webseite"},"impulse":"Was ist der Unterschied zwischen einem relativen und einem absoluten Link? Zeichnet eure Webseiten als Graph."},{"n":9,"st":"6. Stunde","seq":"Datenschutz","title":"Messenger und Sicherheit","cards":{"haushalt":[7],"provider":[8],"website":[8]},"hint":{"haushalt":"Achtung: In dieser Runde gibt es „Angriffe“, aber nur in der Simulation.","provider":"Achtung: In dieser Runde gibt es „Angriffe“, aber nur in der Simulation.","website":"Achtung: In dieser Runde gibt es „Angriffe“, aber nur in der Simulation."},"need":{"haushalt":"Kontakte im Messenger","provider":"Kontakte im Messenger","website":"Kontakte im Messenger"},"give":{"haushalt":"–","provider":"–","website":"–"},"impulse":"Wer wurde infiziert und warum? Welche Regeln nehmt ihr für echte Messenger mit?"}],"trouble":[["Keine Webseite erreichbar","Ist dein Router mit einem Provider verbunden? Ist dein Provider mit den anderen Providern verbunden?"],["Webseite nur über IP, nicht über Domain erreichbar","Es gibt keinen DNS-Server oder die Domain ist dort (noch) nicht eingetragen. Frag beim Provider nach."],["Webserver des Haushalts von außen nicht erreichbar","Er hat eine private Adresse (192.168.1.X). Aktiviere die Portweiterleitung und nutze die WAN-Adresse."],["Smartphone hat „kein WLAN“","Ist das WLAN am Router eingeschaltet? Wurde das WLAN-Passwort geändert? Dann das Smartphone neu verbinden."],["Link funktioniert nicht","Links funktionieren nicht in der Vorschau, sondern nur im Browser. Bei absoluten Links fehlt oft das https://."],["CSS wirkt nicht","Fehlt das HTML-Grundgerüst (DOCTYPE, html, head, body)? Stimmt der Dateiname der CSS-Datei?"]],"glossary":[["Client","Gerät, das einen Dienst anfragt, z. B. ein Computer mit Browser."],["Server","Gerät, das einen Dienst anbietet, z. B. ein Webserver mit Webseiten."],["Router","Vermittlungsrechner: leitet Daten zwischen Netzen weiter."],["Provider","Internetanbieter, der Kunden mit dem Internet verbindet."],["IP-Adresse","Adresse eines Geräts im Netz, z. B. 217.100.215.142."],["WAN-Adresse","Adresse, unter der ein Heimrouter im Internet erreichbar ist."],["Private Adresse","Adresse im Heimnetz (192.168.1.X), von außen nicht direkt erreichbar."],["Portweiterleitung","Einstellung am Router, die Anfragen von außen an ein Gerät im Heimnetz weitergibt."],["DNS","Domain Name System: übersetzt Domains in IP-Adressen."],["Domain","Merkbarer Name einer Webseite, z. B. meine-seite.de."],["URL","Vollständige Adresse, z. B. https://meine-seite.de/seite2.html."],["Access Point","Gerät, das ein WLAN bereitstellt."],["HTML","Sprache, in der Webseiten aufgebaut werden."],["CSS","Sprache, mit der Webseiten gestaltet werden (Farben, Schriften, Abstände)."],["Hyperlink (Verweis)","Verknüpfung zu einer anderen Seite; Zieladresse im Attribut href."],["Schadsoftware","Programme, die Schaden anrichten, z. B. Virus, Trojaner, Ransomware."]]};
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = s => esc(s).replace(/&lt;.*&gt;/, m => "<code>"+m+"</code>").replace(/\[([^\]]+)\]/g, "<kbd>$1</kbd>");
+const S = { get(k,d){ try{ const v=localStorage.getItem("wnsb-"+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
+            set(k,v){ try{ localStorage.setItem("wnsb-"+k, JSON.stringify(v)); }catch(e){} } };
+const toast = t => { const e=$("#toast"); e.textContent=t; e.classList.add("show"); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove("show"),1600); };
+const ROLES = { haushalt:{n:"Haushalt",i:"🏠",k:"H",c:"h",d:"Zuhause mit Heimrouter, surft im Internet"}, provider:{n:"Provider",i:"📡",k:"P",c:"p",d:"Internetanbieter, betreibt den DNS-Server"}, website:{n:"Website-Anbieter",i:"🌐",k:"W",c:"w",d:"Betreibt einen Webserver mit Webseite"} };
+const cardsOf = r => D.cards.find(x => x.id === r).cards;
+
+/* ---------- Zustand ---------- */
+let st = { role:S.get("role",null), net:S.get("net",""), me:S.get("me",""), view:S.get("view","login"), round:S.get("round",1), now:S.get("now",1), checks:S.get("checks",{}), notes:S.get("notes",{}), lstep:S.get("lstep",0) };
+const save = k => S.set(k, st[k]);
+
+/* ---------- Kopf ---------- */
+function renderHead(){
+  if(st.role) document.body.dataset.role = st.role; else delete document.body.dataset.role;
+  const r = ROLES[st.role];
+  $("#pRole").textContent = r ? r.i+" "+r.n : "Rolle wählen";
+  $("#pNetV").textContent = st.net || "–";
+  $("#pRoundV").textContent = st.now + " · " + D.rounds[st.now-1].title;
+}
+$("#pRole").onclick = () => openChooser();
+$("#pRound").onclick = () => { st.round = st.now; save("round"); renderPlanAll(); show("plan"); };
+function openChooser(){ $("#chooser").classList.add("show"); $("#netIn").value = st.net; }
+$("#roleBtns").innerHTML = Object.entries(ROLES).map(([id,r])=>'<button data-r="'+id+'"><span>'+r.i+'</span>'+r.n+'<small>'+r.d+'</small></button>').join("");
+$$("#roleBtns button").forEach(b => b.onclick = () => { st.role=b.dataset.r; save("role"); st.net=$("#netIn").value.trim()||st.net; save("net"); $("#chooser").classList.remove("show"); renderAll(); toast("Rolle: "+ROLES[st.role].n); });
+$("#netIn").addEventListener("input", e => { st.net=e.target.value.trim(); save("net"); renderHead(); renderLogin(); });
+$("#chooser").addEventListener("click", e => { if(e.target.id==="chooser" && st.role) $("#chooser").classList.remove("show"); });
+document.addEventListener("keydown", e => { if(e.key==="Escape" && st.role) $("#chooser").classList.remove("show"); });
+
+const setTheme = t => { if(t) document.documentElement.dataset.theme=t; };
+setTheme(S.get("theme",null));
+$("#theme").onclick = () => { const cur=document.documentElement.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"); const t=cur==="dark"?"light":"dark"; setTheme(t); S.set("theme",t); };
+
+/* ---------- Tabs ---------- */
+function show(v){ st.view=v; save("view"); $$("#tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.v===v)); $$("section.view").forEach(s=>s.classList.toggle("show", s.id==="v-"+v)); scrollTo({top:0}); }
+$$("#tabs button").forEach(b => b.onclick = () => show(b.dataset.v));
+document.addEventListener("click", e => { const g=e.target.closest("[data-go]"); if(g) show(g.dataset.go); });
+
+/* ---------- 1 Anmelden ---------- */
+function loginSteps(){
+  const r = st.role;
+  return [
+    { t:"wns2.de öffnen", d:"Öffne den Browser, gib <b>wns2.de</b> ein und klicke auf <b>„Vernetztes Szenario starten“</b>.",
+      m:'<h3>WebNetSim2</h3><button class="big hl">🖧<span>Vernetztes Szenario starten</span></button><button class="big dim">&lt;/&gt;<span>HTML-Editor starten</span></button>', cap:"Startseite von wns2.de" },
+    { t:"Netzwerknamen eingeben", d:"Er steht an der Tafel. Trage ihn hier ein, dann hast du ihn immer oben im Blick:", input:"net",
+      m:'<h3>Gib den Netzwerknamen deiner Lehrkraft ein:</h3><div class="fake">'+(esc(st.net)||"&nbsp;")+'</div><br><button class="okb">OK</button>', cap:"Netzwerknamen eingeben" },
+    { t:"Rolle wählen", d: r ? "Klicke auf <b>„"+ROLES[r].n+"“</b>. Das ist deine Rolle laut Rollenkarte." : "Wähle die Rolle von deiner Rollenkarte. <a href=\"#\" data-choose>Rolle hier festlegen</a>",
+      m:'<h3>Wähle deine neue Rolle:</h3>'+["haushalt","provider","website"].map(k=>'<button class="big '+(k===r?"hl":"")+'">'+ROLES[k].i+'<span>'+ROLES[k].n+'</span></button>').join("")+'<p style="font-size:.75rem;margin:8px 0 0">◯ Netzwerk-Problemmodus</p>', cap:"Rolle wählen" },
+    { t:"Namen eingeben", d:"Denk dir einen Namen für deine "+(r==="haushalt"?"Familie, z. B. „Familie Sonnenschein“":"Firma aus, z. B. „"+(r==="provider"?"BlitzNet AG":"Spielewelt GmbH")+"“")+".", input:"me",
+      m:'<h3>Wähle den Namen '+(r==="haushalt"?"deines Haushalts":"deiner Firma")+':</h3><div class="fake">'+(esc(st.me)||"&nbsp;")+'</div><br><button class="okb">OK</button>', cap:"Namen eingeben" },
+    r==="provider"
+      ? { t:"Bekannt machen", d:"Schreib deinen Firmennamen und die IP-Adresse deines Routers <b>an die Tafel</b> und ins Adressbuch. Haushalte und Website-Anbieter warten darauf!",
+          m:'<h3>🎉 Dein Router ist da!</h3><p>Halte die Maus über deinen Router, um seine IP-Adresse zu sehen. Dann ab zur Tafel!</p>', cap:"Fertig" }
+      : { t:"Mit Provider verbinden", d:"Ein Fenster fragt, mit welchem Provider du dich verbinden willst. Wähle einen von der Tafel und klicke auf <kbd>VERBINDEN</kbd>. Ist die Liste leer? Dann warte kurz, bis die Provider gestartet sind.",
+          m:'<h3>Mit welchem Provider willst du dich verbinden?</h3><div style="text-align:left;border:1px solid #ccd;border-radius:8px;padding:6px 10px;margin-bottom:10px">◉ BlitzNet AG<br>◯ SpeedNet</div><button class="okb">VERBINDEN</button>', cap:"Provider wählen" },
+  ];
+}
+function renderLogin(){
+  const steps = loginSteps(); const cur = Math.min(st.lstep, steps.length-1);
+  $("#steps").innerHTML = steps.map((s,i)=>'<li data-i="'+i+'" class="'+(i===cur?"cur":i<cur?"done":"")+'"><span class="nr">'+(i<cur?"✓":i+1)+'</span><div><div class="t">'+s.t+'</div><div class="d">'+s.d+'</div>'+(s.input?'<input data-k="'+s.input+'" value="'+esc(st[s.input])+'" placeholder="'+(s.input==="net"?"z. B. 583x1t":"Name")+'">':"")+'</div></li>').join("");
+  $$("#steps li").forEach(li => li.onclick = e => { if(e.target.tagName==="INPUT") return; if(e.target.closest("[data-choose]")){ e.preventDefault(); openChooser(); return; } st.lstep=+li.dataset.i; save("lstep"); renderLogin(); });
+  $$("#steps input").forEach(inp => { inp.addEventListener("input", () => { st[inp.dataset.k]=inp.value.trim(); save(inp.dataset.k); renderHead(); $("#mock .fake") && ($("#mock .fake").textContent = inp.value || " "); }); inp.addEventListener("focus", () => { const i=+inp.closest("li").dataset.i; if(st.lstep!==i){ st.lstep=i; save("lstep"); renderMock(); $$("#steps li").forEach((l,j)=>{ l.className=j===i?"cur":j<i?"done":""; l.querySelector(".nr").textContent=j<i?"✓":j+1; }); } }); });
+  renderMock();
+  const box = $("#loginRoleBox");
+  box.innerHTML = st.role==="provider" ? "<b>📡 Als Provider bist du zuerst dran.</b> Ohne dich können sich die anderen nicht verbinden. Danach geht es mit Karte P2 weiter."
+    : st.role ? "<b>"+ROLES[st.role].i+" Warte auf die Provider.</b> Erst wenn mindestens ein Provider an der Tafel steht, kannst du dich verbinden." : "<b>Tipp:</b> Lege oben deine Rolle fest, dann passt sich die Anleitung an.";
+}
+function renderMock(){
+  const s = loginSteps()[Math.min(st.lstep,4)];
+  $("#mock").innerHTML = '<div class="win">'+s.m+'</div><div class="cap">Schritt '+(Math.min(st.lstep,4)+1)+' von 5 · '+s.cap+' (nachgebildet)</div>';
+}
+
+/* ---------- 2 Adressbuch ---------- */
+const RL = { provider:"📡 Provider", website:"🌐 Website-Anbieter", haushalt:"🏠 Haushalt", dns:"📒 DNS-Server", other:"• Sonstiges" };
+let book = S.get("book", null);
+if(!book) book = [{id:"me",role:"",name:"",ip:"",domain:"",note:""},
+  {id:"r1",role:"provider",name:"",ip:"",domain:"",note:""},{id:"r2",role:"provider",name:"",ip:"",domain:"",note:""},
+  {id:"r3",role:"website",name:"",ip:"",domain:"",note:""},{id:"r4",role:"website",name:"",ip:"",domain:"",note:""},
+  {id:"r5",role:"haushalt",name:"",ip:"",domain:"",note:"WAN: "}];
+let filt = "all";
+const saveBook = () => S.set("book", book);
+const ipOk = v => !v || /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/.test(v.trim());
+const domOk = v => !v || (/\./.test(v) && !/\s/.test(v.trim()));
+function renderFilters(){
+  $("#filters").innerHTML = [["all","Alle"],["provider","📡"],["website","🌐"],["haushalt","🏠"]].map(([k,l])=>'<button data-f="'+k+'" class="'+(filt===k?"on":"")+'" title="'+(RL[k]||"Alle")+'">'+l+'</button>').join(" ");
+  $$("#filters button").forEach(b => b.onclick = () => { filt=b.dataset.f; renderFilters(); renderBook(); });
+}
+function renderBook(){
+  const me = book.find(x=>x.id==="me"); if(me && st.role){ me.role = me.role || st.role; if(!me.name && st.me) me.name = st.me; }
+  const q = ($("#q").value||"").toLowerCase();
+  const rows = book.filter(x => (filt==="all"||x.role===filt||x.id==="me") && (!q || [x.name,x.ip,x.domain,x.note].join(" ").toLowerCase().includes(q)));
+  $("#ab tbody").innerHTML = rows.map(x => {
+    const col = x.role && ROLES[x.role] ? "var(--"+x.role+")" : "transparent";
+    return '<tr data-id="'+x.id+'" class="'+(x.id==="me"?"me":"")+'"><td class="rc" style="background:'+col+'"></td>'+
+    '<td><select data-f="role" aria-label="Rolle"><option value="">'+(x.id==="me"?"Ich: Rolle …":"Rolle …")+'</option>'+Object.entries(RL).map(([k,l])=>'<option value="'+k+'"'+(x.role===k?" selected":"")+'>'+l+'</option>').join("")+'</select></td>'+
+    '<td><input data-f="name" value="'+esc(x.name)+'" placeholder="'+(x.id==="me"?"Mein Name / meine Firma":"Name / Team")+'"></td>'+
+    '<td><div class="cell"><input data-f="ip" value="'+esc(x.ip)+'" placeholder="z. B. 217.100.215.142" class="'+(ipOk(x.ip)?"":"bad")+'" inputmode="decimal"><button class="icon" data-copy="ip" title="IP kopieren" aria-label="IP kopieren">⧉</button></div></td>'+
+    '<td><div class="cell"><input data-f="domain" value="'+esc(x.domain)+'" placeholder="'+(x.role==="provider"?"–":"z. B. spielewelt.de")+'" class="'+(domOk(x.domain)?"":"bad")+'"><button class="icon" data-copy="domain" title="Domain kopieren" aria-label="Domain kopieren">⧉</button></div></td>'+
+    '<td><input data-f="note" value="'+esc(x.note)+'" placeholder="Notiz"></td>'+
+    '<td class="no-print">'+(x.id==="me"?"":'<button class="icon" data-del title="Zeile löschen" aria-label="Zeile löschen">✕</button>')+'</td></tr>'; }).join("") ||
+    '<tr><td colspan="7" class="muted" style="padding:14px">Keine Einträge gefunden.</td></tr>';
+  $$("#ab tbody tr[data-id]").forEach(tr => {
+    const x = book.find(b=>b.id===tr.dataset.id);
+    tr.querySelectorAll("[data-f]").forEach(el => el.addEventListener(el.tagName==="SELECT"?"change":"input", () => {
+      x[el.dataset.f] = el.value; saveBook();
+      if(el.dataset.f==="ip") el.classList.toggle("bad", !ipOk(el.value));
+      if(el.dataset.f==="domain") el.classList.toggle("bad", !domOk(el.value));
+      if(el.dataset.f==="role") renderBook();
+      if(x.id==="me" && el.dataset.f==="name"){ st.me=el.value; save("me"); }
+    }));
+    tr.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => { const v=x[b.dataset.copy]; if(!v) return toast("Noch leer"); (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Kopiert: "+v)).catch(()=>toast(v)); });
+    const d = tr.querySelector("[data-del]"); if(d) d.onclick = () => { book = book.filter(b=>b!==x); saveBook(); renderBook(); };
+  });
+}
+$("#q").addEventListener("input", renderBook);
+$("#addRow").onclick = () => { book.push({id:"r"+Date.now(),role:filt!=="all"?filt:"",name:"",ip:"",domain:"",note:""}); saveBook(); renderBook(); const ins=$$("#ab tbody tr:last-child input"); if(ins[0]) ins[0].focus(); };
+$("#exp").onclick = () => { const blob=new Blob([JSON.stringify({wnsAdressbuch:1,netz:st.net,eintraege:book},null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="adressbuch_"+(st.net||"klasse")+".json"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); };
+$("#imp").onchange = e => { const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result); const list=(j.eintraege||j).filter(x=>x&&typeof x==="object"); let n=0;
+  list.forEach(x=>{ const key=(x.ip||"")+"|"+(x.domain||"")+"|"+(x.name||""); if(key==="||") return; if(book.some(b=>(b.ip||"")+"|"+(b.domain||"")+"|"+(b.name||"")===key)) return;
+    book.push({id:"i"+Date.now()+n,role:RL[x.role]?x.role:"",name:String(x.name||""),ip:String(x.ip||""),domain:String(x.domain||""),note:String(x.note||"")}); n++; });
+  saveBook(); renderBook(); toast(n+" Einträge übernommen"); }catch(err){ toast("Datei konnte nicht gelesen werden"); } e.target.value=""; }; rd.readAsText(f); };
+$("#clearBook").onclick = () => { if(!confirm("Alle Einträge außer deinen eigenen löschen?")) return; book = book.filter(b=>b.id==="me"); saveBook(); renderBook(); };
+
+/* ---------- 3 Ablaufplan ---------- */
+const ck = (role,ci,si) => role+"-"+ci+"-"+si;
+function roundProgress(rn, role){ role = role||st.role; if(!role) return [0,0]; const R=D.rounds[rn-1]; let t=0,d=0; R.cards[role].forEach(ci=>cardsOf(role)[ci].steps.forEach((_,si)=>{ t++; if(st.checks[ck(role,ci,si)]) d++; })); return [d,t]; }
+function renderTimeline(){
+  const groups = []; D.rounds.forEach(R => { let g=groups.find(x=>x.st===R.st); if(!g) groups.push(g={st:R.st,rs:[]}); g.rs.push(R); });
+  $("#timeline").innerHTML = groups.map(g=>'<div class="tl-st"><div class="lbl">'+g.st+'</div><div class="rs">'+g.rs.map(R=>{ const [d,t]=roundProgress(R.n); return '<button class="rbtn '+(R.n===st.round?"sel ":"")+(R.n===st.now?"now ":"")+(t&&d===t?"full":"")+'" data-r="'+R.n+'"><span class="rn">Runde '+R.n+'</span><span class="rt">'+R.title+'</span><span class="bar"><i style="width:'+(t?100*d/t:0)+'%"></i></span></button>'; }).join("")+'</div></div>').join("");
+  $$("#timeline .rbtn").forEach(b => b.onclick = () => { st.round=+b.dataset.r; save("round"); renderPlanAll(); });
+  const sel = $("#timeline .sel"); if(sel) sel.scrollIntoView({block:"nearest",inline:"center"});
+}
+function renderRound(){
+  const R = D.rounds[st.round-1], role = st.role;
+  if(!role){ $("#round").innerHTML = '<div class="card"><h2 style="margin-top:0">Wähle zuerst deine Rolle</h2><p>Dann zeigt dir der Ablaufplan genau deine Karten.</p><button class="pri" data-choose>Rolle wählen</button></div>'; $("#round [data-choose]").onclick=openChooser; return; }
+  const r = ROLES[role], cards = cardsOf(role);
+  const others = Object.keys(ROLES).filter(k=>k!==role);
+  let h = '<div class="rhead"><div><div class="kick">'+R.st+' · Sequenz „'+R.seq+'“ · Runde '+R.n+' von '+D.rounds.length+'</div><h1>'+r.i+' '+R.title+'</h1></div>'+
+    (R.n===st.now ? '<span class="pill" style="background:var(--role);color:#fff;border-color:var(--role)">● Diese Runde ist jetzt dran</span>' : '<button class="nowbtn" id="setNow">Das ist jetzt unsere Runde</button>')+'</div>';
+  if(R.hint && R.hint[role]) h += '<div class="box"><b>💡 </b>'+esc(R.hint[role])+'</div>';
+  h += '<div class="layout"><div>';
+  R.cards[role].forEach(ci => { const c = cards[ci];
+    h += '<article class="rcard"><div class="seq">'+esc(c.seq)+'</div><h2><span class="code">'+r.k+(ci+1)+'</span>'+esc(c.title)+'</h2><div>🎯 <b>Ziel:</b> '+esc(c.goal)+'</div>'+
+      '<ul class="todo">'+c.steps.map((s,si)=>{ const k=ck(role,ci,si), on=!!st.checks[k]; return '<li data-k="'+k+'" class="'+(on?"done":"")+'"><span class="num">'+(si+1)+'</span><input type="checkbox" '+(on?"checked":"")+' aria-label="Schritt '+(si+1)+' erledigt"><span class="tx">'+fmt(s)+'</span></li>'; }).join("")+'</ul>'+
+      '<div class="box">🔍 <b>Ausprobieren und nachdenken:</b> '+fmt(c.try)+'</div>'+
+      (c.note.length ? '<div class="notes"><b style="color:var(--text)">✏️ Notiere</b>'+c.note.map(([lbl],ni)=>{ const k=role+"-"+ci+"-"+ni; return '<label>'+esc(lbl)+'<input data-n="'+k+'" value="'+esc(st.notes[k]||"")+'"></label>'; }).join("")+'</div>' : '')+
+      '</article>'; });
+  const [d,t] = roundProgress(R.n);
+  h += '<div class="nextnav">'+(R.n>1?'<button data-r="'+(R.n-1)+'">← Runde '+(R.n-1)+'</button>':'<span></span>')+
+       (R.n<D.rounds.length?'<button class="pri" data-r="'+(R.n+1)+'">'+(t&&d===t?"✓ Geschafft! ":"")+'Weiter: Runde '+(R.n+1)+' · '+D.rounds[R.n].title+' →</button>':'<span class="pill">🎉 Letzte Runde</span>')+'</div>';
+  h += '</div><aside>';
+  h += '<div class="card"><h3>Fortschritt</h3><div style="font-size:1.6rem;font-weight:800;color:var(--role)">'+d+' / '+t+'</div><div class="muted small">Schritte in dieser Runde erledigt</div></div>';
+  h += '<div class="card need"><h3>📥 Du brauchst</h3><div>'+esc(R.need[role])+'</div>'+(R.need[role]!=="–"?'<button class="small" data-go="book" style="margin-top:8px">Im Adressbuch nachsehen</button>':'')+'</div>';
+  h += '<div class="card give"><h3>📤 Du gibst weiter</h3><div>'+esc(R.give[role])+'</div>'+(R.give[role]!=="–"?'<button class="small" data-go="book" style="margin-top:8px">Ins Adressbuch eintragen</button>':'')+'</div>';
+  h += '<div class="card others"><h3>👀 Das machen die anderen</h3><ul style="padding-left:0;list-style:none;margin:0">'+others.map(k=>'<li><span class="dot" style="background:var(--'+k+')"></span><b>'+ROLES[k].n+':</b> '+R.cards[k].map(ci=>ROLES[k].k+(ci+1)+' '+esc(cardsOf(k)[ci].title)).join(", ")+'</li>').join("")+'</ul></div>';
+  h += '<div class="card"><h3>💬 Zum Nachdenken</h3><div>'+esc(R.impulse)+'</div></div>';
+  h += '</aside></div>';
+  $("#round").innerHTML = h;
+  $$("#round ul.todo li").forEach(li => li.onclick = () => { const k=li.dataset.k; st.checks[k]=!st.checks[k]; if(!st.checks[k]) delete st.checks[k]; save("checks"); renderPlanAll(true); });
+  $$("#round [data-n]").forEach(inp => inp.addEventListener("input", () => { st.notes[inp.dataset.n]=inp.value; save("notes"); }));
+  $$("#round .nextnav [data-r]").forEach(b => b.onclick = () => { st.round=+b.dataset.r; save("round"); renderPlanAll(); scrollTo({top:0,behavior:"smooth"}); });
+  const sn = $("#setNow"); if(sn) sn.onclick = () => { st.now=st.round; save("now"); renderHead(); renderPlanAll(true); toast("Aktuelle Runde: "+R.n); };
+}
+function renderPlanTable(){
+  const order = ["haushalt","provider","website"]; let h = '<thead><tr><th class="g">Runde</th>'+order.map(k=>'<th class="'+ROLES[k].c+'">'+ROLES[k].i+' '+ROLES[k].n+'</th>').join("")+'<th class="g">Zum Nachdenken</th></tr></thead><tbody>'; let last="";
+  D.rounds.forEach(R => { if(R.st!==last){ h+='<tr class="stu"><td colspan="5">'+R.st+' · Sequenz „'+R.seq+'“</td></tr>'; last=R.st; }
+    h += '<tr class="rr '+(R.n===st.round?"sel":"")+'" data-r="'+R.n+'"><td><b>'+R.n+' · '+R.title+'</b>'+(R.n===st.now?' <span class="tag" style="background:var(--role)">JETZT</span>':'')+'</td>'+
+      order.map(k=>'<td class="'+(k===st.role?"mine":"")+'">'+R.cards[k].map(ci=>'<span class="tag '+ROLES[k].c+'">'+ROLES[k].k+(ci+1)+'</span>'+esc(cardsOf(k)[ci].title)).join("<br>")+'</td>').join("")+
+      '<td class="small muted">'+esc(R.impulse)+'</td></tr>'; });
+  $("#plan").innerHTML = h+'</tbody>';
+  $$("#plan tr.rr").forEach(tr => tr.onclick = () => { st.round=+tr.dataset.r; save("round"); renderPlanAll(); scrollTo({top:0,behavior:"smooth"}); });
+}
+function renderPlanAll(keepScroll){ const y=scrollY; renderTimeline(); renderRound(); renderPlanTable(); if(keepScroll) scrollTo({top:y}); }
+
+/* ---------- Hilfe ---------- */
+$("#faq").innerHTML = D.trouble.map(([q,a])=>'<details class="faq"><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join("") +
+  '<details class="faq"><summary>Ich habe aus Versehen die falsche Rolle gewählt</summary><p>Sag der Lehrkraft Bescheid. Sie kann die Rolle als Manager wieder freigeben. Hier auf der Seite kannst du oben auf deine Rolle klicken und sie ändern.</p></details>';
+function renderGloss(){ const q=($("#gq").value||"").toLowerCase(); const hits=D.glossary.filter(g=>(g[0]+" "+g[1]).toLowerCase().includes(q)); $("#gloss").innerHTML = hits.map(g=>'<div><b>'+esc(g[0])+'</b><br>'+esc(g[1])+'</div>').join("") || '<p class="muted">Nichts gefunden.</p>'; }
+$("#gq").addEventListener("input", renderGloss);
+
+/* ---------- Start ---------- */
+function renderAll(){ renderHead(); renderLogin(); renderFilters(); renderBook(); renderPlanAll(); renderGloss(); }
+renderAll(); show(st.view);
+if(!st.role) openChooser();
+</script>
+</body>
+</html>
